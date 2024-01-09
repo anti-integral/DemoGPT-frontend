@@ -26,45 +26,10 @@ import {
 import Link from "next/link";
 import SkeletonCard from "example/components/Cards/SkeletonCard";
 import { useRouter } from "next/router";
+import axios from "axios";
+import Loader from "example/components/Loader/Loader";
 // const prevObj: any[] = [];
-const prevObj = [
-	{
-		id: 1,
-		icon: thumb2,
-		title: "Contact Form",
-		desc: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-	},
-	{
-		id: 2,
-		icon: thumb3,
-		title: "BLog Post",
-		desc: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-	},
-	{
-		id: 3,
-		icon: thumb4,
-		title: "Landing Page",
-		desc: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-	},
-	{
-		id: 4,
-		icon: thumb4,
-		title: "SEO Management",
-		desc: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-	},
-	{
-		id: 5,
-		icon: thumb2,
-		title: "Tag generator",
-		desc: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-	},
-	{
-		id: 6,
-		icon: thumb2,
-		title: "Contact Form",
-		desc: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-	},
-];
+
 function Dashboard() {
 	Chart.register(
 		ArcElement,
@@ -76,8 +41,35 @@ function Dashboard() {
 		Tooltip,
 		Legend
 	);
+	const [isLoading, setIsLoading] = useState(false);
 	const router = useRouter();
 	const { mode, toggleMode } = useContext(WindmillContext);
+	const [cardData, setCardData] = useState([]);
+	const getAllCardsDetails = async () => {
+		setIsLoading(true);
+		const token = localStorage.getItem("token");
+		try {
+			let resp = await axios.get(`${process.env.BACKEND_ADDRESS}/getuserdata`, {
+				headers: {
+					Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+				},
+			});
+			if (resp.data) {
+				setIsLoading(false);
+				console.log(resp.data);
+				setCardData(resp.data.result.collect_data);
+			}
+		} catch (error: any) {
+			if (error.response.data.detail === "Access token not valid") {
+				setIsLoading(false);
+				router.push("/dashboard/login");
+			} else {
+				setIsLoading(false);
+				console.error(error.response.data.detail);
+			}
+		}
+		setIsLoading(false);
+	};
 
 	useEffect(() => {
 		// Check if the user is authenticated (has a token)
@@ -85,6 +77,8 @@ function Dashboard() {
 		if (!token) {
 			// Redirect to the login page if no token is found
 			router.push("/dashboard/login");
+		} else {
+			getAllCardsDetails();
 		}
 	}, []);
 
@@ -128,7 +122,7 @@ function Dashboard() {
 					</h2>
 				</div>
 				<div>
-					{prevObj && prevObj.length > 0 && (
+					{cardData && cardData.length > 0 && (
 						<div className="relative w-full max-w-xl mr-6 focus-within:text-purple-500">
 							<div className="absolute inset-y-0 flex items-center pl-2">
 								<SearchIcon
@@ -146,48 +140,32 @@ function Dashboard() {
 				</div>
 			</div>
 			{/* <!-- Cards --> */}
-			<div
-				className={
-					prevObj && prevObj.length > 0
-						? "w-full flex justify-around items-center gap-[20px] flex-wrap"
-						: "w-full "
-				}
-				// style={{
-				// 	width: "100%",
-				// 	display: "flex",
-				// 	justifyContent: "space-around",
-				// 	alignItems: "center",
-				// 	gap: "20px",
-				// 	flexWrap: "wrap",
-				// }}
-			>
-				{prevObj && prevObj.length > 0 ? (
-					prevObj.map((data) => {
-						return (
-							<PreviewCard
-								key={data.id}
-								imageUrl={data.icon} // Replace with your actual image URL
-								title={data.title}
-								description={data.desc}
-							></PreviewCard>
-						);
-					})
-				) : (
-					// <div className="flex flex-col items-center justify-center h-full mt-10">
-					// 	<div className="text-lg text-black font-medium text-center mb-4 dark:text-white">
-					// 		No Project Added !
-					// 	</div>
-					// 	<Button
-					// 		block
-					// 		className="mt-4"
-					// 		style={{ width: "150px" }}
-					// 	>
-					// 		CREATE APP
-					// 	</Button>
-					// </div>
-					<SkeletonCard />
-				)}
-			</div>
+			{isLoading ? (
+				<Loader />
+			) : (
+				<div
+					className={
+						cardData && cardData.length > 0
+							? "w-full flex justify-around items-center gap-[20px] flex-wrap"
+							: "w-full "
+					}
+				>
+					{cardData && cardData.length > 0 ? (
+						cardData.map((data: any, index) => {
+							return (
+								<PreviewCard
+									key={index}
+									imageUrl={thumb2} // Replace with your actual image URL
+									title={data.appIdea}
+									description={data.appFeatures}
+								></PreviewCard>
+							);
+						})
+					) : (
+						<SkeletonCard />
+					)}
+				</div>
+			)}
 		</Layout>
 	);
 }

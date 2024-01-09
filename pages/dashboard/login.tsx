@@ -1,5 +1,11 @@
 /* eslint-disable react/no-unescaped-entities */
-import React, { useContext, useEffect, useState } from "react";
+import React, {
+	useContext,
+	useEffect,
+	useState,
+	ChangeEvent,
+	FormEvent,
+} from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useGoogleLogin } from "@react-oauth/google";
@@ -13,14 +19,20 @@ import {
 import { GoogleIcon } from "icons";
 import { AuthContext } from "context/AuthContext";
 import { useRouter } from "next/router";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { post } from "./../../utils/utilities";
 import { toast } from "react-toastify";
+import { RotatingLines } from "react-loader-spinner";
 
 dotenv.config();
 
 interface LoginPageProps {
 	path?: string;
+}
+
+interface LoginData {
+	email: string;
+	password: string;
 }
 
 const fetch = async (
@@ -66,14 +78,13 @@ const fetch = async (
 	});
 };
 
-const LoginPage = (props: LoginPageProps) => {
-	const [loginData, setLoginData] = useState({
+const LoginPage: React.FC<LoginPageProps> = (props) => {
+	const [isLoading, setIsLoading] = useState(false);
+	const [loginData, setLoginData] = useState<LoginData>({
 		email: "",
 		password: "",
 	});
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
-	const { user, login, logout } = useContext(AuthContext);
+	const { user, login } = useContext(AuthContext);
 	const { mode } = useContext(WindmillContext);
 	const router = useRouter();
 
@@ -82,7 +93,7 @@ const LoginPage = (props: LoginPageProps) => {
 			? "/assets/img/login-office-dark.jpeg"
 			: "/assets/img/login-office.jpeg";
 
-	const handleChange = (e: any) => {
+	const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
 		const { name, value } = e.target;
 		setLoginData({ ...loginData, [name]: value });
 	};
@@ -90,8 +101,8 @@ const LoginPage = (props: LoginPageProps) => {
 		onSuccess: async (tokenResponse: any) => {
 			console.log(
 				"tokenresponse=====",
-				tokenResponse,
-				JSON.parse(tokenResponse)
+				tokenResponse
+				// JSON.parse(tokenResponse)
 			);
 			await fetch(JSON.parse(tokenResponse), "google", "");
 			if (props) {
@@ -113,24 +124,32 @@ const LoginPage = (props: LoginPageProps) => {
 	}, [user]);
 
 	// manual login
-	const manualLogin = async (e: any) => {
+	const manualLogin = async (e: FormEvent) => {
+		setIsLoading(true);
 		e.preventDefault();
 
 		try {
 			let resp = await axios.post(
-				`${process.env.BACKEND_ADDRESS}/token`,
+				`${process.env.BACKEND_ADDRESS}/login`,
 				loginData
 			);
-			if (resp.data.access_token) {
-				toast.success("User Login successfully");
-				localStorage.setItem("token", resp.data.access_token);
+			if (resp.data.status === "success" && resp.data.result) {
+				setIsLoading(false);
+				toast.success(resp.data.message);
+				// login(resp.data.result); // Update AuthContext with user data
+
+				localStorage.setItem("token", resp.data.result.access_token);
+				localStorage.setItem("uuid", resp.data.result.user_id);
+
 				router.push("/dashboard");
 			}
 			console.log("logins", resp);
-		} catch (error) {
+		} catch (error: any) {
+			setIsLoading(false);
 			toast.error(error.response.data.detail);
 			console.log("login", error);
 		}
+		setIsLoading(false);
 	};
 
 	return (
@@ -180,8 +199,20 @@ const LoginPage = (props: LoginPageProps) => {
 								onClick={(e) => manualLogin(e)}
 								block
 							>
-								Sign In{" "}
+								{isLoading ? (
+									<RotatingLines
+										visible={true}
+										width="20"
+										strokeColor="white"
+										strokeWidth="5"
+										animationDuration="0.75"
+										ariaLabel="rotating-lines-loading"
+									/>
+								) : (
+									"Sign In"
+								)}
 							</Button>
+
 							<hr className="my-8" />
 							<Button
 								block

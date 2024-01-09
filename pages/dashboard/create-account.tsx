@@ -16,10 +16,11 @@ import {
 } from "@roketid/windmill-react-ui";
 import { useGoogleLogin } from "@react-oauth/google";
 import { post } from "./../../utils/utilities";
+import { RotatingLines } from "react-loader-spinner";
 
 function CrateAccount() {
 	const router = useRouter();
-
+	const [isLoading, setIsLoading] = useState(false);
 	const { mode } = useContext(WindmillContext);
 	const imgSource =
 		mode === "dark"
@@ -65,6 +66,7 @@ function CrateAccount() {
 	};
 	console.log("signup", signUpData);
 	const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
+		setIsLoading(true);
 		e.preventDefault(); // Prevent the default form submission behavior
 
 		try {
@@ -77,21 +79,24 @@ function CrateAccount() {
 				response.data.code == 200 &&
 				response.data.message === "User registered successfully"
 			) {
-				console.log("Signup successful");
+				setIsLoading(false);
 				toast.success(response.data.message);
 				router.push("/dashboard/login");
 
 				// Additional logic after successful signup, e.g., redirect to the login page
 			} else {
+				setIsLoading(false);
 				console.log("Signup failed. Please try again.");
 				// Handle other cases, e.g., display an error message
 			}
-		} catch (error) {
+		} catch (error: any) {
+			setIsLoading(false);
 			console.log("Response", error.response.data.detail);
 			toast.error(error.response.data.detail.message);
 
 			// Handle errors, e.g., display an error message to the user
 		}
+		setIsLoading(false);
 	};
 
 	return (
@@ -249,17 +254,6 @@ function CrateAccount() {
 								</div>
 							</Label>
 
-							<Label
-								className="mt-6"
-								check
-							>
-								<Input type="checkbox" />
-								<span className="ml-2">
-									I agree to the{" "}
-									<span className="underline">privacy policy</span>
-								</span>
-							</Label>
-
 							{/* <Link
 								href="/dashboard/login"
 								passHref={true}
@@ -272,7 +266,18 @@ function CrateAccount() {
 									type="submit"
 									disabled={!isFormValid()}
 								>
-									Sign Up
+									{isLoading ? (
+										<RotatingLines
+											visible={true}
+											width="20"
+											strokeColor="white"
+											strokeWidth="5"
+											animationDuration="0.75"
+											ariaLabel="rotating-lines-loading"
+										/>
+									) : (
+										"Sign Up"
+									)}
 								</Button>
 							</form>
 							{/* </Link> */}
