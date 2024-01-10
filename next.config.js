@@ -26,17 +26,7 @@ module.exports = {
 	env: {
 		GOOGLE_CLIENT_ID:
 			"911588995731-h3sssq8apenpmcnrfiekf5ssugahovvh.apps.googleusercontent.com",
-		// BACKEND_ADDRESS : 'http://localhost:8000',
-		BACKEND_ADDRESS: "http://127.0.0.1:8000",
-		// BACKEND_ADDRESS: "http://localhost:8000",
+		// BACKEND_ADDRESS: "http://103.46.239.133:8012",
+		BACKEND_ADDRESS: "http://localhost:8000",
 	},
-	// async redirects() {
-	//   return [
-	//     {
-	//       source: "/",
-	//       destination: "/landingpage",
-	//       permanent: false,
-	//     },
-	//   ];
-	// },
 };

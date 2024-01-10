@@ -30,10 +30,11 @@ function Header() {
 	function handleNotificationsClick() {
 		setIsNotificationsMenuOpen(!isNotificationsMenuOpen);
 	}
+	const handleProfileClick = () => {
+		setIsProfileMenuOpen((prevState) => !prevState);
+	};
+	console.log("isProfileMenuOpen2:", isProfileMenuOpen);
 
-	function handleProfileClick() {
-		setIsProfileMenuOpen(!isProfileMenuOpen);
-	}
 	const router = useRouter();
 
 	return (
@@ -128,9 +129,8 @@ function Header() {
 							</DropdownItem>
 							<DropdownItem
 								onClick={() => {
-									router.push("/");
+									router.push("/dashboard/login");
 									localStorage.removeItem("token");
-									alert("Log out!");
 								}}
 							>
 								<OutlineLogoutIcon

@@ -1,19 +1,9 @@
-import React, {
-	useCallback,
-	useEffect,
-	useLayoutEffect,
-	useMemo,
-	useState,
-	useContext,
-} from "react";
-
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { post } from "./../utils/utilities";
 
 interface User {
-	name?: string;
-	email?: string;
-	token?: string;
+	user_id?: string;
+	access_token?: string;
 }
 
 interface IAuthContext {
@@ -31,84 +21,56 @@ export const AuthContext = React.createContext<IAuthContext>({
 export const AuthContextProvider: React.FC = ({ children }) => {
 	const [user, setUser] = useState<User | null>(null);
 	const [loginState, setLoginState] = useState<boolean>(false);
-	console.log("login status", loginState);
 	const router = useRouter();
 
-	const blacklist = ["dashboard"];
+	const validateUser = () => {
+		const token = localStorage.getItem("token");
 
-	// const validateUser: () => void = () => {
-	// 	const token = localStorage.getItem("token");
-	// 	// console.log("token========>", token);
-	// 	// let state;
-	// 	const url = process.env.BACKEND_ADDRESS + "/auth/whoami";
-	// 	if (token) {
-	// 		post(url, "", { token })
-	// 			.then((res: Response) => {
-	// 				console.log("======", res);
-	// 				if (res.status === 200) setLoginState(true);
-	// 				else setLoginState(true);
-	// 			})
-	// 			.catch((error: Error) => {
-	// 				console.error("Error occurred", error);
-	// 				setLoginState(true);
-	// 			});
-	// 	} else setLoginState(true);
-	// };
-	// const validateUser: () => void = () => {
-	// 	const token = localStorage.getItem("token");
-
-	// 	const url = process.env.BACKEND_ADDRESS + "/auth/whoami";
-	// 	if (token) {
-	// 		post(url, "", { token })
-	// 			.then((res: Response) => {
-	// 				if (res.status === 200) {
-	// 					setLoginState(true);
-	// 				} else {
-	// 					setLoginState(true);
-	// 					// Redirect to login page if the user is not authenticated
-	// 					router.push("/login");
-	// 				}
-	// 			})
-	// 			.catch((error: Error) => {
-	// 				console.error("Error occurred", error);
-	// 				setLoginState(true);
-	// 			});
-	// 	} else {
-	// 		setLoginState(true);
-	// 		// Redirect to login page if the token is not present
-	// 		router.push("/login");
-	// 	}
-	// };
-
-	// router.pathname.includes()
-
-	// useEffect(() => {
-	// 	console.log("60", router.pathname);
-	// 	// validateUser();
-	// 	console.log("validateUser====", loginState);
-
-	// 	if (
-	// 		!loginState &&
-	// 		router.pathname !== "/" &&
-	// 		router.pathname !== "/dashboard/verify-email" &&
-	// 		router.pathname !== "/dashboard/create-account"
-	// 	) {
-	// 		console.log("here");
-	// 		router.push("/dashboard/login");
-	// 	}
-	// }, [router.pathname]);
+		if (token) {
+			// If there's a token, consider the user as authenticated
+			setLoginState(true);
+			// Fetch user details or perform any necessary authentication checks
+			// For simplicity, let's assume user details are stored in localStorage
+			const storedUser = localStorage.getItem("user");
+			if (storedUser) {
+				setUser({ user_id: storedUser, access_token: token });
+			}
+		} else {
+			// If there's no token, consider the user as not authenticated
+			setLoginState(true);
+			// Redirect to login page if the token is not present
+			router.push("/dashboard/login");
+		}
+	};
 
 	const login = (userData: User) => {
 		setUser(userData);
-		localStorage.setItem("user", JSON.stringify(userData));
+		localStorage.setItem("user", userData.user_id || "");
+		localStorage.setItem("token", userData.access_token || "");
 		router.push("/dashboard");
 	};
 
 	const logout = () => {
 		setUser(null);
 		localStorage.removeItem("user");
+		localStorage.removeItem("token");
 		router.push("/login");
 	};
+
+	// useEffect(() => {
+	// 	validateUser();
+	// }, []);
+
+	// useEffect(() => {
+	// 	if (
+	// 		!loginState &&
+	// 		router.pathname !== "/" &&
+	// 		!router.pathname.startsWith("/dashboard/verify-email") &&
+	// 		router.pathname !== "/dashboard/create-account"
+	// 	) {
+	// 		router.push("/dashboard/login");
+	// 	}
+	// }, [loginState, router.pathname]);
 
 	return (
 		<AuthContext.Provider value={{ user, login, logout }}>
@@ -117,4 +79,4 @@ export const AuthContextProvider: React.FC = ({ children }) => {
 	);
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => React.useContext(AuthContext);

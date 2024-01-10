@@ -4,6 +4,7 @@ import axios from "axios";
 import Loader from "example/components/Loader/Loader";
 import EditandDownload from "example/components/EditandDownload";
 import { useRouter } from "next/router";
+import callApi from "../api/CallApi"; // Update the import path accordingly
 
 interface FormData {
 	appIdea: string;
@@ -23,73 +24,41 @@ const Preview = () => {
 	const getProjectId = async () => {
 		setIsLoading(true);
 		try {
-			const token = localStorage.getItem("token");
-			if (!token) {
-				// Handle the case when token is not available in localStorage
-				setIsLoading(false);
-				console.error("Token not found");
-				return;
-			}
-			const response = await axios.post<any>(
-				`${process.env.BACKEND_ADDRESS}/generate`,
-				formData,
-				{
-					headers: {
-						Authorization: `Bearer ${token}`, // Include the token in the Authorization header
-					},
-				}
-			);
-			if (response.data) {
-				setIsLoading(false);
+			const data = await callApi<any>("generate", "post", formData); // Specify the type for callApi
 
-				localStorage.setItem("projectId", response.data.result.project_id);
+			if (data) {
+				setIsLoading(false);
+				localStorage.setItem("projectId", data.result.project_id);
 				fetchData();
 			}
 		} catch (error: any) {
 			setIsLoading(false);
-			if (error.response.data.detail === "Access token not valid") {
+			if (
+				error.response &&
+				error.response.data.detail === "Access token not valid"
+			) {
 				router.push("/dashboard/login");
 			}
 			console.error("Error fetching HTML:", error);
 		}
 	};
+
 	const fetchData = async () => {
-		if (!formData) return; // If formData is not available, return early
+		if (!formData) return;
 
 		setIsLoading(true);
 		try {
-			const token = localStorage.getItem("token");
-			if (!token) {
-				// Handle the case when token is not available in localStorage
-				setIsLoading(false);
-				console.error("Token not found");
-				return;
-			}
-			const response = await axios.post<string>(
-				`${process.env.BACKEND_ADDRESS}/renderoutput`,
-				"",
+			const data = await callApi<string>("renderoutput"); // Specify the type for callApi
 
-				{
-					headers: {
-						Authorization: `Bearer ${token}`, // Include the token in the Authorization header
-					},
-				}
-			);
-			if (response.data) {
-				// getProjectId();
+			if (data) {
 				setIsLoading(false);
-
-				const data = response.data; // Assuming the API response is text/html
 				setHtmlContent(data);
 			}
 		} catch (error: any) {
 			setIsLoading(false);
-			if (error.response.data.detail === "Access token not valid") {
-				router.push("/dashboard/login");
-			}
-			console.error("Error fetching HTML:", error);
 		}
 	};
+
 	useEffect(() => {
 		if (response) {
 			setHtmlContent(response);
@@ -105,8 +74,8 @@ const Preview = () => {
 
 	useEffect(() => {
 		if (formData) getProjectId();
-	}, [formData?.appIdea]); // Fetch data whenever formData changes
-	console.log("response", response);
+	}, [formData?.appIdea]);
+
 	return (
 		<>
 			{isLoading ? (

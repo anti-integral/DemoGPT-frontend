@@ -26,12 +26,19 @@ function CrateAccount() {
 		mode === "dark"
 			? "/assets/img/create-account-office-dark.jpeg"
 			: "/assets/img/create-account-office.jpeg";
+
 	const googleLogin = useGoogleLogin({
-		onSuccess: (tokenResponse) => console.log(tokenResponse),
+		onSuccess: (tokenResponse) => {
+			console.log("token", tokenResponse);
+			toast.success("Login successfully");
+			localStorage.setItem("token", tokenResponse.access_token);
+			router.push("/dashboard");
+		},
 		onError: (err) => {
 			console.log(err);
 		},
 	});
+
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 	const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
 		useState(false);
