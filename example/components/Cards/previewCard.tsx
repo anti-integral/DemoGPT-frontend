@@ -6,13 +6,20 @@ import { SunIcon } from "icons";
 import { WindmillContext } from "@roketid/windmill-react-ui";
 import styles from "../../../styles/Home.module.css";
 import router from "next/router";
+import TruncatedString from "../SliceString/TruncatedString";
 interface PreviewCardProps {
 	imageUrl: any;
 	title: string;
 	description: string;
+	projectId: string;
 }
 
-function PreviewCard({ imageUrl, title, description }: PreviewCardProps) {
+function PreviewCard({
+	imageUrl,
+	title,
+	description,
+	projectId,
+}: PreviewCardProps) {
 	const { mode, toggleMode } = useContext(WindmillContext);
 	const [formData, setFormData] = useState({
 		appIdea: "",
@@ -20,10 +27,10 @@ function PreviewCard({ imageUrl, title, description }: PreviewCardProps) {
 		appLook: "",
 		image: "",
 	});
-	const goToEditPage = () => {
+	const goToEditPage = (id: any) => {
 		router.push({
-			pathname: "/dashboard/Preview",
-			query: { data: JSON.stringify(formData) },
+			pathname: "/dashboard/EditPage",
+			query: { pId: id },
 		});
 	};
 	useEffect(() => {
@@ -36,10 +43,10 @@ function PreviewCard({ imageUrl, title, description }: PreviewCardProps) {
 		});
 	}, []);
 	return (
-		<div onClick={goToEditPage}>
+		<div>
 			<div className={styles.cardContainer}>
 				<div className={styles.cardImg}>
-					<div>
+					<div onClick={() => goToEditPage(Number(projectId))}>
 						{" "}
 						<Image
 							src={imageUrl}
@@ -59,7 +66,14 @@ function PreviewCard({ imageUrl, title, description }: PreviewCardProps) {
 						>
 							{title}
 						</p>
-						<p className={styles.cardDesc}>{description}</p>
+						<p className={styles.cardDesc}>
+							{
+								<TruncatedString
+									text={description}
+									maxLength={110}
+								/>
+							}
+						</p>
 					</div>
 				</div>
 			</div>

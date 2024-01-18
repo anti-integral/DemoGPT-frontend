@@ -15,6 +15,8 @@ import {
 	WindmillContext,
 } from "@roketid/windmill-react-ui";
 import { useGoogleLogin } from "@react-oauth/google";
+import { GoogleLogin } from "@react-oauth/google";
+
 import { post } from "./../../utils/utilities";
 import { RotatingLines } from "react-loader-spinner";
 
@@ -29,15 +31,50 @@ function CrateAccount() {
 
 	const googleLogin = useGoogleLogin({
 		onSuccess: (tokenResponse) => {
+			// try {
+			// 	const resp = await axios.get(
+			// 		"https://www.googleapis.com/oauth2/v3/userinfo",
+			// 		{
+			// 			headers: {
+			// 				Authorization: `Bearer ${response.access_token}`,
+			// 			},
+			// 		}
+			// 	);
+			// 	if (resp) {
+			// 		console.log("google", resp.config.headers.Authorization);
+			// 		googleAuth(resp.config.headers.Authorization);
+			// 	}
+			// } catch (err) {
+			// 	console.log(err);
+			// }
+
 			console.log("token", tokenResponse);
-			toast.success("Login successfully");
-			localStorage.setItem("token", tokenResponse.access_token);
-			router.push("/dashboard");
-		},
-		onError: (err) => {
-			console.log(err);
+			googleAuth(tokenResponse.access_token);
 		},
 	});
+	const googleAuth = async (data: any) => {
+		try {
+			const resp = await axios.post(
+				`${process.env.BACKEND_ADDRESS}/google-login`,
+				"",
+				{
+					headers: {
+						Authorization: `Bearer ${data}`,
+					},
+				}
+			);
+			if (resp.data.status === "success" && resp.data.result) {
+				setIsLoading(false);
+				toast.success(resp.data.message);
+				// login(resp.data.result); // Update AuthContext with user data
+
+				localStorage.setItem("token", resp.data.result.access_token);
+				localStorage.setItem("uuid", resp.data.result.user_id);
+
+				router.push("/dashboard");
+			}
+		} catch (err) {}
+	};
 
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 	const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =

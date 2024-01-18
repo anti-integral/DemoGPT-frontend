@@ -11,7 +11,7 @@ import router from "next/router";
 
 function MyApp({ Component, pageProps }: AppProps) {
 	const googleClientId =
-		"911588995731-h3sssq8apenpmcnrfiekf5ssugahovvh.apps.googleusercontent.com";
+		"278022160322-ovuqcfjgpul25gdhsv3e37e74pn00tvb.apps.googleusercontent.com";
 
 	// "395785444978-7b9v7l0ap2h3308528vu1ddnt3rqftjc.apps.googleusercontent.com";
 	// suppress useLayoutEffect warnings when running outside a browser

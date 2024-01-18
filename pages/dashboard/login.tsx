@@ -17,7 +17,6 @@ import {
 	WindmillContext,
 } from "@roketid/windmill-react-ui";
 import { GoogleIcon } from "icons";
-import { AuthContext } from "context/AuthContext";
 import { useRouter } from "next/router";
 import axios, { AxiosError } from "axios";
 import { post } from "./../../utils/utilities";
@@ -35,49 +34,6 @@ interface LoginData {
 	password: string;
 }
 
-const fetch = async (
-	tokenData: any,
-	flag: string,
-	token: any
-): Promise<boolean> => {
-	console.log(process.env.BACKEND_ADDRESS);
-	let data =
-		flag === "google"
-			? {
-					token: tokenData,
-			  }
-			: tokenData;
-	let bearerToken =
-		flag === "google" ? tokenData.access_token ?? "" : token ?? "";
-	const url =
-		flag === "google"
-			? process.env.BACKEND_ADDRESS + "/auth/login/"
-			: process.env.BACKEND_ADDRESS + "/auth/login/manual";
-	let config = {
-		method: "post",
-		maxBodyLength: Infinity,
-		url: url,
-		headers: {
-			"Content-Type": "application/JSON",
-			Authorization: `Bearer ${bearerToken}`,
-		},
-		data: JSON.stringify(data),
-	};
-	return new Promise<boolean>((resolve, reject) => {
-		axios
-			.request(config)
-			.then((response) => {
-				localStorage.setItem("token", response.data.token ?? null);
-				console.log(response, response.data);
-				resolve(true);
-			})
-			.catch((error) => {
-				console.log(error);
-				reject(false);
-			});
-	});
-};
-
 const LoginPage: React.FC<LoginPageProps> = (props) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [loginData, setLoginData] = useState<LoginData>({
@@ -86,7 +42,6 @@ const LoginPage: React.FC<LoginPageProps> = (props) => {
 	});
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
-	const { user, login } = useContext(AuthContext);
 	const { mode } = useContext(WindmillContext);
 	const router = useRouter();
 	function togglePasswordVisibility(data: any) {
@@ -104,32 +59,43 @@ const LoginPage: React.FC<LoginPageProps> = (props) => {
 		const { name, value } = e.target;
 		setLoginData({ ...loginData, [name]: value });
 	};
+	//google login
 	const googleLogin = useGoogleLogin({
-		onSuccess: async (tokenResponse: any) => {
+		onSuccess: (tokenResponse: any) => {
 			console.log(
 				"tokenresponse=====",
 				tokenResponse
 				// JSON.parse(tokenResponse)
 			);
-			await fetch(JSON.parse(tokenResponse), "google", "");
-			if (props) {
-				console.log(props);
-			}
-			router.push("/");
-			localStorage.setItem("token", JSON.stringify(tokenResponse));
+			googleAuth(tokenResponse.access_token);
 		},
 		onError: (err) => {
 			console.log(err);
 		},
 	});
-	useEffect(() => {
-		// Check if the user is already authenticated or the token is valid
-		if (user) {
-			// Redirect to the dashboard or any other authorized page
-			router.push("/dashboard");
-		}
-	}, [user]);
+	const googleAuth = async (data: any) => {
+		try {
+			const resp = await axios.post(
+				`${process.env.BACKEND_ADDRESS}/google-login`,
+				"",
+				{
+					headers: {
+						Authorization: `Bearer ${data}`,
+					},
+				}
+			);
+			if (resp.data.status === "success" && resp.data.result) {
+				setIsLoading(false);
+				toast.success(resp.data.message);
+				// login(resp.data.result); // Update AuthContext with user data
 
+				localStorage.setItem("token", resp.data.result.access_token);
+				localStorage.setItem("uuid", resp.data.result.user_id);
+
+				router.push("/dashboard");
+			}
+		} catch (err) {}
+	};
 	// manual login
 	const manualLogin = async (e: FormEvent) => {
 		setIsLoading(true);
@@ -143,11 +109,9 @@ const LoginPage: React.FC<LoginPageProps> = (props) => {
 			if (resp.data.status === "success" && resp.data.result) {
 				setIsLoading(false);
 				toast.success(resp.data.message);
-				// login(resp.data.result); // Update AuthContext with user data
 
 				localStorage.setItem("token", resp.data.result.access_token);
 				localStorage.setItem("uuid", resp.data.result.user_id);
-
 				router.push("/dashboard");
 			}
 			console.log("logins", resp);
@@ -176,7 +140,7 @@ const LoginPage: React.FC<LoginPageProps> = (props) => {
 					<main className="flex items-center justify-center p-6 sm:p-12 md:w-1/2">
 						<div className="w-full">
 							<h1 className="mb-4 text-xl font-semibold text-gray-700 dark:text-gray-200">
-								Welcome to DemoGPT
+								Welcome to AIDev
 							</h1>
 							<Label>
 								{/* <span>Email</span> */}
@@ -189,16 +153,7 @@ const LoginPage: React.FC<LoginPageProps> = (props) => {
 									onChange={handleChange}
 								/>
 							</Label>
-							{/* <Label className="mt-4">
-								<Input
-									className="mt-1"
-									type="password"
-									name="password"
-									value={loginData.password}
-									onChange={handleChange}
-									placeholder="Enter Your Password"
-								/>
-							</Label> */}
+
 							<Label className="mt-4">
 								<span>Password</span>
 

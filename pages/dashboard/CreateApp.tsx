@@ -17,9 +17,14 @@ interface FormData {
 interface ImageUploadProps {
 	setFormData: React.Dispatch<React.SetStateAction<FormData>>;
 	formData: FormData;
+	onImageChange: (imageData: string) => void; // Callback function to get base64 image data
 }
 
-const ImageUpload: React.FC<ImageUploadProps> = ({ setFormData, formData }) => {
+const ImageUpload: React.FC<ImageUploadProps> = ({
+	setFormData,
+	formData,
+	onImageChange,
+}) => {
 	const [dragOver, setDragOver] = useState<boolean>(false);
 	// const [image, setImage] = useState<string | null>(null);
 
@@ -41,7 +46,9 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ setFormData, formData }) => {
 			const reader = new FileReader();
 			reader.onload = (event: ProgressEvent<FileReader>) => {
 				if (event.target && event.target.result) {
-					setFormData({ ...formData, image: event.target.result as string });
+					const base64Image = event.target.result as string;
+					setFormData({ ...formData, image: base64Image });
+					onImageChange(base64Image); // Call the callback with base64 image data
 				}
 			};
 			reader.readAsDataURL(file);
@@ -54,7 +61,9 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ setFormData, formData }) => {
 			const reader = new FileReader();
 			reader.onload = (event: ProgressEvent<FileReader>) => {
 				if (event.target && event.target.result) {
-					setFormData({ ...formData, image: event.target.result as string });
+					const base64Image = event.target.result as string;
+					setFormData({ ...formData, image: base64Image });
+					onImageChange(base64Image); // Call the callback with base64 image data
 				}
 			};
 			reader.readAsDataURL(file);
@@ -169,7 +178,7 @@ const CreateApp = (): JSX.Element => {
 	}, [formData]);
 	return (
 		<Layout>
-			<PageTitle>Welcome to DemoGPT</PageTitle>
+			<PageTitle>Welcome to AIDev</PageTitle>
 			<div className="px-4 py-3 mb-8 bg-white rounded-lg shadow-md dark:bg-gray-800">
 				<Label className="mt-4">
 					<span>Explain your application app idea *</span>
@@ -236,6 +245,9 @@ const CreateApp = (): JSX.Element => {
 					<ImageUpload
 						setFormData={setFormData}
 						formData={formData}
+						onImageChange={(base64Image) =>
+							console.log("Base64 Image:", base64Image)
+						}
 					/>
 				</div>
 				<div className="flex items-center mt-5 justify-between">

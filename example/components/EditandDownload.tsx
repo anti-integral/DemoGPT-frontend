@@ -52,7 +52,7 @@ const EditandDownload: React.FC<EditandDownloadProps> = ({
 		setIsLoading(true);
 		try {
 			const token = localStorage.getItem("token");
-			const resp = await axios.post<string>(
+			const resp = await axios.post<any>(
 				`${process.env.BACKEND_ADDRESS}/edit`,
 				{ projectID: pid, ...data },
 				{
@@ -64,7 +64,8 @@ const EditandDownload: React.FC<EditandDownloadProps> = ({
 			if (resp.data) {
 				setIsLoading(false);
 				closeModal();
-				edit();
+				setResponse(resp.data.code);
+				// edit();
 			}
 		} catch (err) {
 			setIsLoading(false);
@@ -107,7 +108,7 @@ const EditandDownload: React.FC<EditandDownloadProps> = ({
 						href={"/dashboard"}
 						passHref={true}
 					>
-						<Button iconLeft={EditIcon}>
+						<Button>
 							<span>Dashboard</span>
 						</Button>
 					</Link>

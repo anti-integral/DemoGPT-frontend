@@ -25,8 +25,9 @@ module.exports = {
 	},
 	env: {
 		GOOGLE_CLIENT_ID:
-			"911588995731-h3sssq8apenpmcnrfiekf5ssugahovvh.apps.googleusercontent.com",
-		// BACKEND_ADDRESS: "http://103.46.239.133:8012",
-		BACKEND_ADDRESS: "http://localhost:8000",
+			"278022160322-ovuqcfjgpul25gdhsv3e37e74pn00tvb.apps.googleusercontent.com",
+		BACKEND_ADDRESS: "http://103.46.239.133:8012",
+		// BACKEND_ADDRESS: "http://localhost:8000",
+		// BACKEND_ADDRESS: "https://5be4-103-81-214-124.ngrok-free.app/google-login",
 	},
 };

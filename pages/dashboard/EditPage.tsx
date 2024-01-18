@@ -7,61 +7,60 @@ import callApi from "../api/CallApi"; // Update the import path accordingly
 import Image from "next/image";
 
 interface FormData {
-	appIdea: string;
-	appFeatures: string;
+	projectID: any;
 }
 
-const Preview = () => {
+const EditPage = () => {
 	const router = useRouter();
-	const { data } = router.query;
+	const { pId } = router.query;
 	const [htmlContent, setHtmlContent] = useState<string>("");
 	const [isLoading, setIsLoading] = useState<boolean>(false);
-	const [formData, setFormData] = useState<FormData | undefined>();
+	const [formData, setFormData] = useState<any>();
 	const [response, setResponse] = useState<string>("");
 
-	console.log("data", formData);
+	console.log("data", pId);
 
 	const getProjectId = async () => {
-		setIsLoading(true);
-		try {
-			const data = await callApi<any>("generate", "post", formData); // Specify the type for callApi
+		// Check if pId is available
+		if (pId) {
+			let payload: FormData = {
+				projectID: pId as string, // Assuming pId is a string
+			};
+			setIsLoading(true);
+			try {
+				const data = await callApi<any>("redirect-edit", "post", payload);
 
-			if (data) {
-				setIsLoading(false);
-				console.log("data", data);
+				if (data) {
+					setIsLoading(false);
+					console.log("Data from generateProjectId API:", data);
+					// Set other state variables or perform actions if needed
+				}
 				setHtmlContent(data.code);
-
 				localStorage.setItem("projectId", data.result.project_id);
-				// fetchData();
+			} catch (error: any) {
+				setIsLoading(false);
+
+				if (
+					error.response &&
+					error.response.data &&
+					error.response.data.detail === "Access token not valid"
+				) {
+					router.push("/dashboard/login");
+				}
+				console.error("Error fetching HTML:", error);
 			}
-		} catch (error: any) {
-			setIsLoading(false);
-			if (
-				error.response &&
-				error.response.data.detail === "Access token not valid"
-			) {
-				router.push("/dashboard/login");
-			}
-			console.error("Error fetching HTML:", error);
 		}
 	};
+
+	useEffect(() => {
+		getProjectId();
+	}, [pId]);
 
 	useEffect(() => {
 		if (response) {
 			setHtmlContent(response);
 		}
 	}, [response]);
-
-	useEffect(() => {
-		if (data) {
-			const parsedData: FormData = JSON.parse(data as string);
-			setFormData(parsedData);
-		}
-	}, [data]);
-
-	useEffect(() => {
-		if (formData) getProjectId();
-	}, [formData?.appIdea]);
 
 	return (
 		<>
@@ -84,4 +83,4 @@ const Preview = () => {
 	);
 };
 
-export default Preview;
+export default EditPage;

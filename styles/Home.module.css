@@ -156,8 +156,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
-  min-height: 250px;
-
+  align-items: center;
+  justify-content: space-between;
 }
 
 .skeletonImage {
@@ -196,19 +196,15 @@
 
 .cardImg {
 
-  max-width: 300px;
+
+  width: 300px;
+  min-height: 250px;
   /* Adjust the max-width based on your design */
   border-radius: 1.25rem;
+  /* border: 1px solid white; */
   overflow: hidden;
-  /* box-shadow: 0 8px 11px rgba(0, 0, 0, 0.1); */
-  box-shadow: inset 0 0 0.5px 1px hsla(0, 0%,
-      100%, 0.075),
-    /* shadow ring 👇 */
-    0 0 0 1px hsla(0, 0%, 0%, 0.05),
-    /* multiple soft shadows 👇 */
-    0 0.3px 0.4px hsla(0, 0%, 0%, 0.02),
-    0 0.9px 1.5px hsla(0, 0%, 0%, 0.045),
-    0 3.5px 6px hsla(0, 0%, 0%, 0.09);
+  box-shadow: 0 4px 11px rgb(242, 239, 239);
+
   margin-top: 6px;
   padding: 14px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;

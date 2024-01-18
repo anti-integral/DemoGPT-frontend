@@ -25,14 +25,6 @@ const callApi = async <T>(
 
 		return response.data;
 	} catch (error: any) {
-		if (
-			error.response &&
-			error.response.data.detail === "Access token not valid"
-		) {
-			const router = useRouter();
-
-			router.push("/dashboard/login");
-		}
 		console.error("API call error:", error);
 		throw error;
 	}
